@@ -1,0 +1,15 @@
+{
+	"pages": [{
+		"path": "pages/index/index"
+	}, {
+		"path": "pages/student/index"
+	}, {
+		"path": "pages/teacher/index"
+	}],
+	"globalStyle": {
+		"navigationStyle": "custom",
+		"app-plus": {
+			"background": "#efeff4"
+		}
+	}
+}
