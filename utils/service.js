@@ -6,8 +6,37 @@ import axios from 'axios';
 const service = axios.create({
 	// 超时
 	timeout: 5000,
-	baseURL: 'http://127.0.0.1:4523/mock/1710164'
+	baseURL: 'http://1.117.115.133:8080',
 });
+
+axios.defaults.adapter = function(config) {
+	return new Promise((resolve, reject) => {
+		console.log(config)
+		var settle = require('axios/lib/core/settle');
+		var buildURL = require('axios/lib/helpers/buildURL');
+		uni.request({
+			method: config.method.toUpperCase(),
+			url: config.baseURL + buildURL(config.url, config.params, config.paramsSerializer),
+			header: config.headers,
+			data: config.data,
+			dataType: config.dataType,
+			responseType: config.responseType,
+			sslVerify: config.sslVerify,
+			complete: function complete(response) {
+				console.log("执行完成：", response)
+				response = {
+					data: response.data,
+					status: response.statusCode,
+					errMsg: response.errMsg,
+					header: response.header,
+					config: config
+				};
+
+				settle(resolve, reject, response);
+			}
+		})
+	})
+}
 
 // request拦截器
 service.interceptors.request.use(
