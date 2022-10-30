@@ -11,7 +11,6 @@ const service = axios.create({
 
 axios.defaults.adapter = function(config) {
 	return new Promise((resolve, reject) => {
-		console.log(config)
 		var settle = require('axios/lib/core/settle');
 		var buildURL = require('axios/lib/helpers/buildURL');
 		uni.request({
@@ -23,7 +22,6 @@ axios.defaults.adapter = function(config) {
 			responseType: config.responseType,
 			sslVerify: config.sslVerify,
 			complete: function complete(response) {
-				console.log("执行完成：", response)
 				response = {
 					data: response.data,
 					status: response.statusCode,
@@ -41,9 +39,7 @@ axios.defaults.adapter = function(config) {
 // request拦截器
 service.interceptors.request.use(
 	(config) => {
-		// 如果 token 存在
-		// 让每个请求携带自定义 token 请根据实际情况自行修改
-
+		console.log(config);
 		return config
 
 	},
@@ -55,32 +51,9 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use((res) => {
-		// const {
-		// 	code
-		// } = res.data;
-		// if (code && code !== 200) {
-		// 	if (res.response?.data?.message.includes('重新登录')) {
-		// 		Notification.error({
-		// 			title: res.response.message || res.result,
-		// 		});
-		// 		router.push('/login')
-		// 	}
-		// 	Notification.error({
-		// 		title: res.data.message || res.message || res.result,
-		// 	});
-		// 	return Promise.reject('error');
-		// } else {
-		// 	return res.data;
-		// }
+		return res.data
 	},
 	(error) => {
-		// if (error?.response?.data?.message.includes('重新登录')) {
-		// 	Notification.error({
-		// 		title: error.response.data.message || res.response.message,
-		// 	});
-		// 	return Promise.reject('error');
-
-		// }
 		return Promise.reject(error);
 	});
 export default service;

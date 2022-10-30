@@ -4,8 +4,6 @@ import App from './App'
 
 import service from './utils/service.js'
 
-// Vue.use(Vant);
-
 Vue.config.productionTip = false
 Vue.prototype.$axios = service
 

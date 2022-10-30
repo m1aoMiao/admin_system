@@ -8,15 +8,11 @@
 			<view class="input_section">
 				<input type="text" placeholder="账号" placeholder-style="color:rgba(58, 58, 58, 1);font-size: 18px;
 			font-weight: 400;" v-model.trim="username" />
-				<input type="safe-password" placeholder="密码" placeholder-style="color:rgba(58, 58, 58, 1);font-size: 18px;
+				<input type="password" placeholder="密码" placeholder-style="color:rgba(58, 58, 58, 1);font-size: 18px;
 			font-weight: 400;" v-model.trim="password" />
 			</view>
 
-			<uni-popup ref="message" type="message">
-				<uni-popup-message :type="msgType" :message="messageText" :duration="2000"></uni-popup-message>
-			</uni-popup>
 			<view class="button_wrapper">
-				<button @click="handleClick">登录</button>
 				<button @click="handleClick">登录</button>
 			</view>
 
@@ -29,7 +25,7 @@
 	export default {
 		data() {
 			return {
-				username: 'lxy',
+				username: 'B20030101',
 				password: '123456',
 				msgType: '',
 				messageText: ''
@@ -37,7 +33,6 @@
 		},
 		methods: {
 			handleClick() {
-
 				this.$axios({
 					url: '/login',
 					method: 'post',
@@ -45,30 +40,31 @@
 						username: this.username,
 						password: this.password
 					}
-				}).then((res) => {
-					console.log(res);
+				}).then(({
+					data,
+					code,
+					message
+				}) => {
+					if (code === 200) {
+						uni.setStorageSync('token', data.token)
+						uni.setStorageSync('stu_id', this.username)
+						if (data.role === '1') {
+							uni.redirectTo({
+								url: '/pages/teacher/index'
+							});
+						} else if (data.role === '2') {
+							uni.redirectTo({
+								url: '/pages/student/index'
+							});
+						}
+					} else {
+						uni.showToast({
+							title: message,
+							icon: 'error',
+							duration: 2000
+						});
+					}
 				})
-
-
-				// login({
-				// 	username: this.username,
-				// 	password: this.password
-				// }).then((res) => {
-				// 	console.log(res)
-				// });
-				// if (this.username && this.password) {
-				// 	console.log(this.username, this.password);
-				// 	// uni.redirectTo({
-				// 	// 	url: '/pages/teacher/index'
-				// 	// });
-				// 	uni.redirectTo({
-				// 		url: '/pages/student/index'
-				// 	});
-				// } else {
-				// 	this.msgType = 'error';
-				// 	this.messageText = '请输入用户名或密码!';
-				// 	this.$refs.message.open();
-				// }
 			}
 		}
 	};
@@ -135,6 +131,7 @@
 				}
 			}
 		}
+
 
 
 		.line {

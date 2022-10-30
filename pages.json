@@ -5,6 +5,8 @@
 		"path": "pages/student/index"
 	}, {
 		"path": "pages/teacher/index"
+	}, {
+		"path": "pages/admin/index"
 	}],
 	"globalStyle": {
 		"navigationStyle": "custom",

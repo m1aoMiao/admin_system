@@ -1,19 +1,19 @@
 <template>
 	<view class="container">
 		<view class="header">
-			<img src="@/static/Menu.png" alt="" />
+			<!-- <image :src="require('@/static/Menu.png')" alt="" @click="handleExit" /> -->
+			<uni-icons class='exit' type="home" @click="handleExit" />
 			<text>学生信息管理系统</text>
-			<img src="@/static/avatar.png" alt="" />
+			<image :src="require('@/static/avatar.png')" alt="" @click="toMyProfile" />
 		</view>
 		<view class="main_section">
-			<text class="slogen">Hello！Student Li</text>
-			<view class="input_wrapper">
-				<input type="text" />
-				<i class="icon"></i>
-			</view>
+			<text class="slogen">Hello！{{stu_id}}</text>
 			<view class="button_wrapper">
 				<view @click="changeSection('courseSelectInquiry')">
 					<text>选课</br>查询</text>
+				</view>
+				<view @click="changeSection('courseInfo')">
+					<text>课程</br>信息</text>
 				</view>
 				<view @click="changeSection('transcript')">
 					<text>成绩单</text>
@@ -31,23 +31,52 @@
 						<view class="top">
 							<uni-data-select class="select" v-model="term" :localdata="termRange" @change="chooseTerm">
 							</uni-data-select>
-							<img src="@/static/arrow_up.png" alt="" />
+							<image :src="require('@/static/arrow_up.png')" alt="" />
 						</view>
 						<view class="bottom">
 							<text>课程名称</text>
+							<text>课程学分</text>
 							<text>分数</text>
 							<text>绩点</text>
-							<text>评级</text>
-							<text>排名</text>
 						</view>
 					</view>
 					<view class="main">
-						<view class="stu_info"></view>
-						<view class="stu_info"></view>
-						<view class="stu_info"></view>
-						<view class="stu_info"></view>
-						<view class="stu_info"></view>
+						<view class="stu_info" v-for="(course,index) in myGradePoints" :key="index">
+							<view class="brief_info">
+								<text>{{course.courseName}}</text>
+								<text>{{course.point}}</text>
+								<text>{{course.score}}</text>
+								<text>{{course.GPA}}</text>
+							</view>
+						</view>
 					</view>
+
+					<uni-icons class='downLoad' type="cloud-download" @click="handleDownLoad"></uni-icons>
+				</view>
+			</template>
+
+			<template v-if="openSection.courseInfo">
+				<view class="info_section">
+					<view class="head">
+						<view class="bottom">
+							<text>课程名称</text>
+							<text>课程学分</text>
+							<text>教师</text>
+							<text>开设学期</text>
+						</view>
+					</view>
+					<view class="main">
+						<view class="stu_info" v-for="(course,index) in allCourses" :key="index">
+							<view class="brief_info">
+								<text>{{course.courseName}}</text>
+								<text>{{course.point}}</text>
+								<text>{{course.teacher}}</text>
+								<text>{{course.term}}</text>
+							</view>
+						</view>
+					</view>
+
+					<uni-icons class='downLoad' type="cloud-download" @click="handleDownLoad"></uni-icons>
 				</view>
 			</template>
 
@@ -57,7 +86,7 @@
 						<view class="top">
 							<uni-data-select class="select" v-model="term" :localdata="termRange" @change="chooseTerm">
 							</uni-data-select>
-							<img src="@/static/arrow_up.png" alt="" />
+							<image :src="require('@/static/arrow_up.png')" alt="" />
 						</view>
 						<view class="bottom">
 							<text>课程名称</text>
@@ -68,29 +97,31 @@
 					</view>
 					<view class="main">
 						<view :class="{'stu_info':true,'open':openIndex === index}" @click="handleOpen(index)"
-							v-for="index in 8" :key="index">
+							v-for="(course,index) in myCourses" :key="index">
 							<template v-if="openIndex === index">
 								<view class="top">
-									<text>课程名称:</text>
-									<text>课程编号:</text>
-									<text>授课老师:</text>
-									<text>开课学期:</text>
-									<text>选购教材:</text>
+									<text>课程名称:{{course.courseName}}</text>
+									<text>课程编号:{{course.courseName}}</text>
+									<text>授课老师:{{course.teacher}}</text>
+									<text>开课学期:{{course.term}}</text>
+									<text>选购教材:{{course.courseName}}</text>
 								</view>
 								<button>退选</button>
 							</template>
 
 							<template v-else>
 								<view class="brief_info">
-									<text>高级程序设计</text>
-									<text>张老师</text>
-									<text>1-2学期</text>
+									<text>{{course.courseName}}</text>
+									<text>{{course.teacher}}</text>
+									<text>{{course.term}}</text>
 									<text>已选</text>
 								</view>
 							</template>
 
 						</view>
 					</view>
+
+					<uni-icons class='downLoad' type="cloud-download" @click="handleDownLoad"></uni-icons>
 				</view>
 			</template>
 
@@ -98,18 +129,17 @@
 				<view class="info_section">
 					<text>我的信息</text>
 					<view class="upLoadAvatar">
-						<view class="img_wrapper">
-							<img class="avatar" src="@/static/avatar_big.png" alt="">
-							<img src="@/static/upload.png" alt="">
+						<view class="image_wrapper">
+							<image class="avatar" :src="require('@/static/avatar_big.png')" alt="" />
+							<!-- <image :src="require('@/static/upload.png')" alt="" /> -->
 						</view>
 					</view>
 
 					<view class="brief_profile">
 						<view class="top">
-							<text>姓名:</text>
-							<text>学号:</text>
-							<text>班级:</text>
-							<text>密码:</text>
+							<text>姓名:{{myProfile.studentName}}</text>
+							<text>学号:{{myProfile.studentId}}</text>
+							<text>班级:{{myProfile.className}}</text>
 						</view>
 						<button @click="modifyPassword">修改密码</button>
 					</view>
@@ -123,20 +153,20 @@
 
 					<view class="password_input_wrapper">
 						<text>原密码</text>
-						<input type="password">
+						<input type="password" v-model="old_password">
 					</view>
 
 					<view class="password_input_wrapper">
 						<text>新密码</text>
-						<input type="password">
+						<input type="password" v-model="new_password">
 					</view>
 
 					<view class="password_input_wrapper">
 						<text>再次输入新密码</text>
-						<input type="password">
+						<input type="password" v-model="confirm_password">
 					</view>
 
-					<button class="confirm">确认</button>
+					<button class="confirm" @click="confirmPassword">确认</button>
 
 				</view>
 			</template>
@@ -146,8 +176,6 @@
 					<view class="head">
 						<view class="top">
 							<text>GPA计算器</text>
-							<uni-data-select class="select" v-model="term" :localdata="termRange" @change="chooseTerm">
-							</uni-data-select>
 						</view>
 
 					</view>
@@ -167,7 +195,7 @@
 						<text>3.77/54</text>
 					</view>
 
-					<button class="confirm">确认</button>
+					<button class="confirm" @click="OpenMenuSheet">确认</button>
 
 				</view>
 			</template>
@@ -181,73 +209,213 @@
 		data() {
 			return {
 				openSection: {
-					'transcript': false,
-					'courseSelectInquiry': true,
-					'myProfile': false,
-					'changePassword': false,
-					'GPACalculator': false,
+					transcript: false,
+					courseSelectInquiry: false,
+					myProfile: false,
+					changePassword: false,
+					GPACalculator: false,
+					courseInfo: false
 				},
-				transcript: false,
-				courseSelectInquiry: true,
-				myProfile: false,
-				changePassword: false,
-				GPACalculator: false,
-				openIndex: 1,
+				myProfile: '',
+				myCourses: [],
+				allCourses: [],
+				myGradePoints: [],
+				old_password: '',
+				new_password: '',
+				confirm_password: '',
+				openIndex: 0,
 				isOpen: true,
 				term: '',
 				termRange: [{
-						value: 0,
+						value: 1,
 						text: "第一学期"
 					},
 					{
-						value: 1,
+						value: 2,
 						text: "第二学期"
 					},
 					{
-						value: 2,
+						value: 3,
 						text: "第三学期"
 					},
 					{
-						value: 3,
+						value: 4,
 						text: "第四学期"
 					},
 					{
-						value: 4,
+						value: 5,
 						text: "第五学期"
 					},
 					{
-						value: 5,
+						value: 6,
 						text: "第六学期"
 					},
 					{
-						value: 6,
+						value: 7,
 						text: "第七学期"
 					},
 					{
-						value: 7,
+						value: 8,
 						text: "第八学期"
 					},
 				]
 			};
 		},
+		computed: {
+			stu_id() {
+				return uni.getStorageSync('stu_id')
+			}
+		},
 		methods: {
+			OpenMenuSheet() {
+				uni.showActionSheet({
+					itemList: ['修改', '删除'],
+					success(res) {
+						if (res.tapIndex === 0) {
+							this.$axios({
+								url: '/student/changePassword',
+								method: 'post',
+								headers: {
+									token: uni.getStorageSync('token')
+								},
+								params: {
+									newPassword: this.confirm_password.trim(),
+									oldPassword: this.old_password.trim()
+								}
+							})
+						} else if (res.tapIndex === 1) {
+							this.$axios({
+								url: '/student/changePassword',
+								method: 'post',
+								headers: {
+									token: uni.getStorageSync('token')
+								},
+								params: {
+									newPassword: this.confirm_password.trim(),
+									oldPassword: this.old_password.trim()
+								}
+							})
+
+						}
+					},
+					fail(res) {
+						console.log(res.errMsg);
+					}
+				});
+			},
+			handleDownLoad() {
+				uni.showLoading({
+					title: '下载'
+				});
+
+				const downloadTask = uni.downloadFile({
+					url: 'https://ask.dcloud.net.cn/uploads/article/20190725/974e0bde9256230f1366efbbb552b9b4.png', //仅为示例，并非真实的资源
+					success: (res) => {
+						if (res.statusCode === 200) {
+							uni.hideLoading();
+							uni.showToast({
+								title: "下载成功",
+								icon: 'success',
+								duration: 2000
+							});
+							let that = this;
+							uni.saveFile({
+								tempFilePath: res.tempFilePath,
+								success: function(res) {
+									console.log(res);
+									that.savaPath = res.savedFilePath
+								}
+							});
+							setTimeout(() => {
+								//打开文档查看
+								uni.openDocument({
+									filePath: that.savaPath,
+									success: function() {
+										uni.showToast({
+											title: "打开文档成功",
+											icon: 'success',
+											duration: 2000
+										});
+									}
+								});
+							}, 3000)
+						} else {
+							uni.hideLoading();
+							uni.showToast({
+								title: "下载失败",
+								icon: 'error',
+								duration: 2000
+							});
+						}
+
+					}
+				});
+			},
+			handleExit() {
+				uni.showModal({
+					title: '确定退出？',
+					success: function(res) {
+						if (res.confirm) {
+							console.log('用户点击确定');
+							uni.redirectTo({
+								url: '/pages/index/index'
+							})
+						} else if (res.cancel) {
+							console.log('用户点击取消');
+						}
+					}
+				})
+			},
+			toMyProfile() {
+				this.changeSection('myProfile')
+			},
 			changeSection(section) {
+				this.term = ''
 				for (let [key] of Object.entries(this.openSection)) {
 					this.openSection[key] = false
 				}
 				this.openSection[section] = true
+				switch (section) {
+					case 'myProfile':
+						this.getMyProfile()
+						break
+					case 'courseSelectInquiry':
+						this.getTermCourses()
+						break
+					case 'transcript':
+						this.getGradePoint()
+						break
+					case 'courseInfo':
+						this.getAllCourses()
+						break
+					case 'GPACalculator':
+						break
+					case 'changePassword':
+						break
+				}
 			},
-			chooseTerm(e) {
-				console.log(e);
+			chooseTerm(term) {
+				if (term) {
+					if (this.openSection.transcript) {
+						this.getGradePoint(term)
+					} else if (this.openSection.courseSelectInquiry) {
+						this.getTermCourses(term)
+					}
+				} else {
+					if (this.openSection.transcript) {
+						this.getGradePoint()
+					} else if (this.openSection.courseSelectInquiry) {
+						this.getTermCourses()
+					}
+				}
 			},
 			handleOpen(index) {
-				console.log(index, this.openIndex);
 				if (!this.isOpen) {
 					this.isOpen = !this.isOpen
 					this.openIndex = index
 				} else if (this.openIndex === index) {
 					this.isOpen = !this.isOpen
-					this.openIndex = 0
+					this.openIndex = -1
 				} else {
 					this.openIndex = index
 				}
@@ -255,6 +423,160 @@
 			modifyPassword() {
 				this.openSection.myProfile = false
 				this.openSection.changePassword = true
+			},
+			confirmPassword() {
+				if (this.new_password.trim() === this.old_password.trim()) {
+					uni.showToast({
+						title: "新密码不能与旧密码相同",
+						icon: 'error',
+						duration: 2000
+					});
+					this.new_password = ''
+					this.old_password = ''
+					this.confirm_password = ''
+				} else if (this.new_password.trim() !== this.confirm_password.trim()) {
+					uni.showToast({
+						title: "两次输入密码不同",
+						icon: 'error',
+						duration: 2000
+					});
+					this.new_password = ''
+					this.old_password = ''
+					this.confirm_password = ''
+				} else {
+					this.$axios({
+						url: '/student/changePassword',
+						method: 'post',
+						headers: {
+							token: uni.getStorageSync('token')
+						},
+						params: {
+							newPassword: this.confirm_password.trim(),
+							oldPassword: this.old_password.trim()
+						}
+					}).then(({
+						message,
+						code
+					}) => {
+						if (code === 200) {
+							uni.showToast({
+								title: message,
+								icon: 'success',
+								duration: 2000
+							});
+						} else {
+							uni.showToast({
+								title: message,
+								icon: 'error',
+								duration: 2000
+							});
+						}
+						this.new_password = ''
+						this.old_password = ''
+						this.confirm_password = ''
+					})
+				}
+
+			},
+			getAllCourses() {
+				this.$axios({
+					url: '/student/getCourse',
+					method: 'get',
+					headers: {
+						token: uni.getStorageSync('token')
+					},
+
+				}).then(({
+					data
+				}) => {
+					this.allCourses = [...data]
+				})
+			},
+			getTermCourses(term) {
+				if (term) {
+					this.$axios({
+						url: '/student/chooseCourseList',
+						method: 'get',
+						headers: {
+							token: uni.getStorageSync('token')
+						},
+						params: {
+							term
+						}
+					}).then(({
+						data,
+						code,
+						message
+					}) => {
+						if (code === 200) {
+							this.myCourses = [...data]
+						} else {
+							this.myCourses = []
+							uni.showToast({
+								title: message,
+								icon: 'error',
+								duration: 2000
+							});
+						}
+					})
+				} else {
+					this.myCourses = []
+				}
+
+			},
+			getGradePoint(term) {
+				if (term) {
+					this.$axios({
+						url: '/student/report',
+						method: 'get',
+						headers: {
+							token: uni.getStorageSync('token')
+						},
+						params: {
+							term: term
+						}
+					}).then(({
+						data,
+						code,
+						message
+					}) => {
+						if (code === 200) {
+							data.forEach((course) => {
+								if (course.score === -1) {
+									course.score = '未考'
+									course.GPA = 0.0
+								} else {
+									const GPA = (course.score >= 60 ? (course.score - 50) * 0.1 : 0.0)
+									course.GPA = GPA
+								}
+							})
+							this.myGradePoints = [...data]
+						} else {
+							this.myGradePoints = []
+							uni.showToast({
+								title: message,
+								icon: 'error',
+								duration: 2000
+							});
+						}
+					})
+				} else {
+					this.myGradePoints = []
+				}
+
+			},
+			getMyProfile() {
+				this.$axios({
+					url: '/student/getinfo',
+					method: 'get',
+					headers: {
+						token: uni.getStorageSync('token')
+					}
+				}).then(({
+					data
+				}) => {
+					this.myProfile = data
+				})
 			}
 		}
 	};
@@ -273,12 +595,16 @@
 		align-items: center;
 		justify-content: space-between;
 
+		.exit::before {
+			font-size: 36px;
+		}
+
 		text {
 			font-size: 18px;
 			font-weight: 700;
 		}
 
-		img {
+		image {
 			width: 36px;
 			height: 36px;
 		}
@@ -292,61 +618,43 @@
 			font-weight: 700;
 		}
 
-		.input_wrapper {
-			position: relative;
-
-			input {
-				margin: 0 auto;
-				margin-top: 16px;
-				padding-left: 20px;
-				width: 81.3vw;
-				height: 5.3vh;
-				opacity: 0.61;
-				border-radius: 25px;
-				background: rgba(255, 255, 255, 1);
-			}
-
-			.icon {
-				position: absolute;
-				display: inline-block;
-				top: -4px;
-				right: 4.6vw;
-				height: 5.3vh;
-				width: 5.3vh;
-				background-image: url('~@/static/search.png');
-				/*这里放置图标的绝对路径*/
-				background-repeat: no-repeat;
-				z-index: 2;
-			}
-		}
 
 		.button_wrapper {
 			display: flex;
 			justify-content: space-between;
-			margin-top: 16px;
+			margin-top: 32px;
 
 			view {
 				display: inline-block;
-				width: 18.6vw;
-				height: 18.6vw;
+				width: 14.6vw;
+				height: 14.6vw;
 				text-align: center;
 				border-radius: 7.68px;
 				border: 0.5px solid rgba(228, 228, 228, 1);
-				font-size: 18px;
-				font-weight: 700;
-				color: white;
+
+				text {
+					line-height: 7.3vw;
+					font-size: 14px;
+					font-weight: 700;
+					color: white;
+				}
+
 
 				&:first-of-type {
 					background: linear-gradient(180deg, rgba(255, 179, 97, 1) 0%, rgba(255, 215, 156, 1) 100%);
 				}
 
 				&:nth-of-type(2) {
-					line-height: 18.6vw;
 					background: linear-gradient(180deg, rgba(114, 160, 212, 1) 0%, rgba(164, 217, 219, 1) 100%);
 				}
 
 				&:nth-of-type(3) {
+					line-height: 14.6vw;
 					background: linear-gradient(180deg, rgba(252, 152, 139, 1) 0%, rgba(255, 184, 203, 1) 100%);
+				}
+
+				&:nth-of-type(4) {
+					background: linear-gradient(180deg, rgba(247, 216, 210, 1) 0%, rgba(251, 198, 169, 1) 100%);
 				}
 
 				&:last-of-type {
@@ -356,12 +664,20 @@
 		}
 
 		.info_section {
+			position: relative;
 			margin-top: 14px;
 			padding: 2.59vh 3.7vw;
 			height: calc(45vh + 2.59vh + 2.59vh);
 			border-radius: 7.68px;
 			background: rgba(255, 255, 255, 0.5);
 			overflow: scroll;
+
+			.downLoad::before {
+				position: absolute;
+				right: 20px;
+				bottom: 20px;
+				font-size: 48px;
+			}
 
 			&>text {
 				font-size: 18px;
@@ -418,7 +734,7 @@
 					}
 				}
 
-				img {
+				image {
 					width: 21px;
 					height: 12px;
 				}
@@ -497,15 +813,22 @@
 				background: rgba(106, 106, 106, 0.25);
 				box-shadow: 0px 1px 7px 2px rgba(165, 164, 164, 0.21);
 
-				.img_wrapper {
+				.image_wrapper {
 					position: relative;
 					height: 100%;
 
-					img {
+					image {
 						position: absolute;
+						width: 48px;
+						height: 48px;
 						top: 50%;
 						left: 50%;
 						transform: translate(-50%, -50%);
+
+						&.avatar {
+							width: 128px;
+							height: 128px;
+						}
 					}
 				}
 
