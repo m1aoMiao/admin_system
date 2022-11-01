@@ -1,7 +1,6 @@
 <template>
 	<view class="container">
 		<view class="header">
-			<!-- <image :src="require('@/static/Menu.png')" alt="" @click="handleExit" /> -->
 			<uni-icons class='exit' type="home" @click="handleExit" />
 			<text>学生信息管理系统</text>
 			<image :src="require('@/static/avatar.png')" alt="" @click="toMyProfile" />
@@ -51,7 +50,7 @@
 						</view>
 					</view>
 
-					<uni-icons class='downLoad' type="cloud-download" @click="handleDownLoad"></uni-icons>
+					<uni-icons class='downLoad' type="cloud-download" @click="handleDownLoad('成绩单')"></uni-icons>
 				</view>
 			</template>
 
@@ -76,7 +75,7 @@
 						</view>
 					</view>
 
-					<uni-icons class='downLoad' type="cloud-download" @click="handleDownLoad"></uni-icons>
+					<uni-icons class='downLoad' type="cloud-download" @click="handleDownLoad('课程信息')"></uni-icons>
 				</view>
 			</template>
 
@@ -100,11 +99,10 @@
 							v-for="(course,index) in myCourses" :key="index">
 							<template v-if="openIndex === index">
 								<view class="top">
-									<text>课程名称:{{course.courseName}}</text>
-									<text>课程编号:{{course.courseName}}</text>
-									<text>授课老师:{{course.teacher}}</text>
-									<text>开课学期:{{course.term}}</text>
-									<text>选购教材:{{course.courseName}}</text>
+									<text>课程名称: {{course.courseName}}</text>
+									<text>授课老师: {{course.teacher}}</text>
+									<text>开课学期: {{course.term}}</text>
+									<text>选购教材: {{course.className}}</text>
 								</view>
 								<button>退选</button>
 							</template>
@@ -121,7 +119,7 @@
 						</view>
 					</view>
 
-					<uni-icons class='downLoad' type="cloud-download" @click="handleDownLoad"></uni-icons>
+					<uni-icons class='downLoad' type="cloud-download" @click="handleDownLoad('选课信息')"></uni-icons>
 				</view>
 			</template>
 
@@ -181,21 +179,19 @@
 					</view>
 
 					<view class="GPA_detail">
-						<text></text>
-						<input type="password">
+						<text>GPA: </text>
+						<text>{{GPA}}</text>
 					</view>
 
-					<view class="GPA_detail">
-						<text>程序设计实践</text>
-						<text>97/4.50</text>
+					<view class="course_info">
+						<view class="GPA_detail" v-for="course,index in myGradePoints" :key="index"
+							@click="modifyGrade(course.courseName)">
+							<text>{{course.courseName}}</text>
+							<text>{{course.GPA}}</text>
+						</view>
 					</view>
 
-					<view class="GPA_detail">
-						<text>平均绩点/排名</text>
-						<text>3.77/54</text>
-					</view>
-
-					<button class="confirm" @click="OpenMenuSheet">确认</button>
+					<button class="confirm" @click="resetGPA">重新计算</button>
 
 				</view>
 			</template>
@@ -208,6 +204,8 @@
 	export default {
 		data() {
 			return {
+				isModify: false,
+				url: '',
 				openSection: {
 					transcript: false,
 					courseSelectInquiry: false,
@@ -218,8 +216,11 @@
 				},
 				myProfile: '',
 				myCourses: [],
+				GPA: "",
 				allCourses: [],
 				myGradePoints: [],
+				originGPA: [],
+				myCourseScore: [],
 				old_password: '',
 				new_password: '',
 				confirm_password: '',
@@ -263,53 +264,139 @@
 		},
 		computed: {
 			stu_id() {
-				return uni.getStorageSync('stu_id')
+				return uni.getStorageSync('id')
+			},
+		},
+		watch: {
+			myGradePoints: {
+				deep: true,
+				handler() {
+					let points = 0
+					let GPAs = 0
+
+					this.myGradePoints.forEach((course) => {
+						if (course.score >= 0) {
+							GPAs += Number(course.GPA * course.point)
+						}
+						points += Number(course.point)
+					})
+
+					this.GPA = (GPAs / points).toFixed(2)
+				}
 			}
 		},
 		methods: {
-			OpenMenuSheet() {
-				uni.showActionSheet({
-					itemList: ['修改', '删除'],
-					success(res) {
-						if (res.tapIndex === 0) {
-							this.$axios({
-								url: '/student/changePassword',
-								method: 'post',
-								headers: {
-									token: uni.getStorageSync('token')
-								},
-								params: {
-									newPassword: this.confirm_password.trim(),
-									oldPassword: this.old_password.trim()
-								}
-							})
-						} else if (res.tapIndex === 1) {
-							this.$axios({
-								url: '/student/changePassword',
-								method: 'post',
-								headers: {
-									token: uni.getStorageSync('token')
-								},
-								params: {
-									newPassword: this.confirm_password.trim(),
-									oldPassword: this.old_password.trim()
-								}
-							})
+			modifyGrade(courseName) {
+				uni.showModal({
+					title: '修改成绩',
+					editable: true,
+					success: (res) => {
+						if (res.confirm) {
+							if (res.content <= 100 && res.content >= 0 && Number(res.content) !== 'NaN') {
+								this.myGradePoints.forEach((course) => {
+									if (course.courseName === courseName) {
+										course.score = Number(res.content)
+									}
+								})
+								this.calculateGPA(this.myGradePoints)
+							} else {
+								uni.showToast({
+									title: '请输入正确成绩',
+									icon: 'error',
+									duration: 2000
+								})
+							}
 
 						}
-					},
-					fail(res) {
-						console.log(res.errMsg);
 					}
 				});
 			},
-			handleDownLoad() {
+			resetGPA() {
+				this.getGradePoint(0)
+			},
+			calculateGPA(courses) {
+				courses.forEach((course) => {
+					if (course.score === -1) {
+						course.score = '未考'
+						course.GPA = 0.0
+					} else {
+						const GPA = (course.score >= 60 ? (course.score - 50) * 0.1 : 0.0)
+						course.GPA = GPA.toFixed(2)
+					}
+				})
+				return courses
+			},
+			downLoadTranscript(term) {
+				term = term || 0
+				this.$axios({
+					url: '/student/outReport',
+					method: 'get',
+					params: {
+						term
+					}
+				}).then(({
+					data
+				}) => {
+					if (!data) {
+						return
+					}
+					this.handleAndroidDownload(data)
+				})
+			},
+			downLoadCourseList() {
+				this.$axios({
+					url: '/student/outCourseInfo',
+					method: 'get',
+				}).then(({
+					data
+				}) => {
+					if (!data) {
+						return
+					}
+					this.handleAndroidDownload(data)
+				})
+			},
+			downLoadCourseSelection(term) {
+				if (term) {
+					this.$axios({
+						url: '/student/outChooseCourse',
+						method: 'get',
+						params: {
+							term
+						}
+					}).then(({
+						data
+					}) => {
+						if (!data) {
+							return
+						}
+						this.handleAndroidDownload(data)
+					})
+				} else {
+					uni.showToast({
+						title: "请选择学期",
+						icon: 'error',
+						duration: 2000
+					});
+				}
+
+			},
+			handleDownLoad(type) {
 				uni.showLoading({
 					title: '下载'
 				});
 
-				const downloadTask = uni.downloadFile({
-					url: 'https://ask.dcloud.net.cn/uploads/article/20190725/974e0bde9256230f1366efbbb552b9b4.png', //仅为示例，并非真实的资源
+				if (type === '成绩单') {
+					this.downLoadTranscript(this.term)
+				} else if (type === '课程信息') {
+					this.downLoadCourseList()
+				} else {
+					this.downLoadCourseSelection(this.term)
+				}
+			},
+			handleAndroidDownload(url) {
+				uni.downloadFile({
+					url, //仅为示例，并非真实的资源
 					success: (res) => {
 						if (res.statusCode === 200) {
 							uni.hideLoading();
@@ -321,12 +408,13 @@
 							let that = this;
 							uni.saveFile({
 								tempFilePath: res.tempFilePath,
-								success: function(res) {
-									console.log(res);
+								success(res) {
+									console.log(res.savedFilePath);
 									that.savaPath = res.savedFilePath
 								}
 							});
 							setTimeout(() => {
+								console.log(that.savaPath);
 								//打开文档查看
 								uni.openDocument({
 									filePath: that.savaPath,
@@ -356,13 +444,11 @@
 					title: '确定退出？',
 					success: function(res) {
 						if (res.confirm) {
-							console.log('用户点击确定');
+							uni.clearStorageSync()
 							uni.redirectTo({
 								url: '/pages/index/index'
 							})
-						} else if (res.cancel) {
-							console.log('用户点击取消');
-						}
+						} else if (res.cancel) {}
 					}
 				})
 			},
@@ -389,6 +475,7 @@
 						this.getAllCourses()
 						break
 					case 'GPACalculator':
+						this.getGradePoint(0)
 						break
 					case 'changePassword':
 						break
@@ -525,15 +612,12 @@
 
 			},
 			getGradePoint(term) {
-				if (term) {
+				if (term || term === 0) {
 					this.$axios({
 						url: '/student/report',
 						method: 'get',
-						headers: {
-							token: uni.getStorageSync('token')
-						},
 						params: {
-							term: term
+							term
 						}
 					}).then(({
 						data,
@@ -541,16 +625,9 @@
 						message
 					}) => {
 						if (code === 200) {
-							data.forEach((course) => {
-								if (course.score === -1) {
-									course.score = '未考'
-									course.GPA = 0.0
-								} else {
-									const GPA = (course.score >= 60 ? (course.score - 50) * 0.1 : 0.0)
-									course.GPA = GPA
-								}
-							})
+							data = this.calculateGPA(data)
 							this.myGradePoints = [...data]
+							this.originGPA = [...data]
 						} else {
 							this.myGradePoints = []
 							uni.showToast({
@@ -667,7 +744,7 @@
 			position: relative;
 			margin-top: 14px;
 			padding: 2.59vh 3.7vw;
-			height: calc(45vh + 2.59vh + 2.59vh);
+			height: calc(50vh + 2.59vh + 2.59vh);
 			border-radius: 7.68px;
 			background: rgba(255, 255, 255, 0.5);
 			overflow: scroll;
@@ -925,6 +1002,11 @@
 					}
 				}
 
+				input {
+					width: 50px;
+					margin-left: 36px;
+				}
+
 			}
 
 			.confirm {
@@ -938,6 +1020,11 @@
 				border-radius: 12px;
 				background: rgba(255, 246, 232, 1);
 				border: 1px solid rgba(246, 221, 184, 1);
+			}
+
+			.course_info {
+				height: calc(100% - 160px);
+				overflow: scroll;
 			}
 
 		}

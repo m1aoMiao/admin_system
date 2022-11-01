@@ -39,7 +39,7 @@ axios.defaults.adapter = function(config) {
 // request拦截器
 service.interceptors.request.use(
 	(config) => {
-		console.log(config);
+		config.headers['token'] = uni.getStorageSync('token')
 		return config
 
 	},
@@ -51,7 +51,20 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use((res) => {
+		let {
+			code,
+			message
+		} = res.data
+
+		if (code === 200) {} else {
+			uni.showToast({
+				title: message,
+				icon: 'error',
+				duration: 2000
+			});
+		}
 		return res.data
+
 	},
 	(error) => {
 		return Promise.reject(error);

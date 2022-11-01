@@ -25,10 +25,8 @@
 	export default {
 		data() {
 			return {
-				username: 'B20030101',
-				password: '123456',
-				msgType: '',
-				messageText: ''
+				username: '',
+				password: '',
 			};
 		},
 		methods: {
@@ -47,7 +45,7 @@
 				}) => {
 					if (code === 200) {
 						uni.setStorageSync('token', data.token)
-						uni.setStorageSync('stu_id', this.username)
+						uni.setStorageSync('id', this.username)
 						if (data.role === '1') {
 							uni.redirectTo({
 								url: '/pages/teacher/index'
@@ -55,6 +53,10 @@
 						} else if (data.role === '2') {
 							uni.redirectTo({
 								url: '/pages/student/index'
+							});
+						} else {
+							uni.redirectTo({
+								url: '/pages/admin/index'
 							});
 						}
 					} else {
