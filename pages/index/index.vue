@@ -31,42 +31,50 @@
 		},
 		methods: {
 			handleClick() {
-				this.$axios({
-					url: '/login',
-					method: 'post',
-					params: {
-						username: this.username,
-						password: this.password
-					}
-				}).then(({
-					data,
-					code,
-					message
-				}) => {
-					if (code === 200) {
-						uni.setStorageSync('token', data.token)
-						uni.setStorageSync('id', this.username)
-						if (data.role === '1') {
-							uni.redirectTo({
-								url: '/pages/teacher/index'
-							});
-						} else if (data.role === '2') {
-							uni.redirectTo({
-								url: '/pages/student/index'
-							});
+				if (this.username.trim() && this.password.trim()) {
+					this.$axios({
+						url: '/login',
+						method: 'post',
+						params: {
+							username: this.username,
+							password: this.password
+						}
+					}).then(({
+						data,
+						code,
+						message
+					}) => {
+						if (code === 200) {
+							uni.setStorageSync('token', data.token)
+							uni.setStorageSync('id', this.username)
+							if (data.role === '1') {
+								uni.redirectTo({
+									url: '/pages/teacher/index'
+								});
+							} else if (data.role === '2') {
+								uni.redirectTo({
+									url: '/pages/student/index'
+								});
+							} else {
+								uni.redirectTo({
+									url: '/pages/admin/index'
+								});
+							}
 						} else {
-							uni.redirectTo({
-								url: '/pages/admin/index'
+							uni.showToast({
+								title: message,
+								icon: 'error',
+								duration: 2000
 							});
 						}
-					} else {
-						uni.showToast({
-							title: message,
-							icon: 'error',
-							duration: 2000
-						});
-					}
-				})
+					})
+				} else {
+					uni.showToast({
+						title: '请输入账号或密码！',
+						icon: 'error',
+						duration: 2000
+					});
+				}
 			}
 		}
 	};
@@ -127,10 +135,6 @@
 				border-radius: 12px;
 				background: rgba(255, 246, 232, 1);
 				border: 1px solid rgba(246, 221, 184, 1);
-
-				&:last-of-type {
-					margin-left: 20px;
-				}
 			}
 		}
 

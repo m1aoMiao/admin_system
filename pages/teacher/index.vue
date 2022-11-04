@@ -677,7 +677,6 @@
 					margin-top: 24px;
 				}
 
-
 				text {
 					font-size: 18px;
 					font-weight: 400;

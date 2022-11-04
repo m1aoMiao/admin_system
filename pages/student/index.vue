@@ -91,20 +91,22 @@
 							<text>课程名称</text>
 							<text>教师</text>
 							<text>开课时间</text>
-							<text>教材</text>
+							<text>选课情况</text>
 						</view>
 					</view>
 					<view class="main">
-						<view :class="{'stu_info':true,'open':openIndex === index}" @click="handleOpen(index)"
-							v-for="(course,index) in myCourses" :key="index">
+						<view :class="{'stu_info':true,'open':openIndex === index}" v-for="(course,index) in myCourses"
+							:key="index" @click="handleOpen(index)">
 							<template v-if="openIndex === index">
 								<view class="top">
 									<text>课程名称: {{course.courseName}}</text>
 									<text>授课老师: {{course.teacher}}</text>
 									<text>开课学期: {{course.term}}</text>
-									<text>选购教材: {{course.className}}</text>
+									<text>选课情况: {{course.className}}</text>
 								</view>
-								<button>退选</button>
+								<button v-if="course.className !=='未选'"
+									@click="deleteCourse(course.courseName)">退课</button>
+								<button v-else @click="addCourse(course.courseName)">新增选课</button>
 							</template>
 
 							<template v-else>
@@ -112,14 +114,14 @@
 									<text>{{course.courseName}}</text>
 									<text>{{course.teacher}}</text>
 									<text>{{course.term}}</text>
-									<text>已选</text>
+									<text>{{course.className}}</text>
 								</view>
 							</template>
 
 						</view>
 					</view>
 
-					<uni-icons class='downLoad' type="cloud-download" @click="handleDownLoad('选课信息')"></uni-icons>
+					<uni-icons class='downLoad' type=" cloud-download" @click="handleDownLoad('选课信息')"></uni-icons>
 				</view>
 			</template>
 
@@ -173,7 +175,7 @@
 				<view class="info_section">
 					<view class="head">
 						<view class="top">
-							<text>GPA计算器</text>
+							<text>GPA计算器(点击成绩进行修改)</text>
 						</view>
 
 					</view>
@@ -286,6 +288,44 @@
 			}
 		},
 		methods: {
+			deleteCourse(courseName) {
+				this.$axios({
+					url: '/student/deleteCourse',
+					method: 'post',
+					params: {
+						courseName,
+						term: this.term
+					}
+				}).then(({
+					data
+				}) => {
+					uni.showToast({
+						title: data,
+						icon: 'success',
+						duration: 2000
+					})
+					this.getTermCourses(this.term)
+				})
+			},
+			addCourse(courseName) {
+				this.$axios({
+					url: '/student/addCourse',
+					method: 'post',
+					params: {
+						courseName,
+						term: this.term
+					}
+				}).then(({
+					data
+				}) => {
+					uni.showToast({
+						title: data,
+						icon: 'success',
+						duration: 2000
+					})
+					this.getTermCourses(this.term)
+				})
+			},
 			modifyGrade(courseName) {
 				uni.showModal({
 					title: '修改成绩',
@@ -435,7 +475,6 @@
 								duration: 2000
 							});
 						}
-
 					}
 				});
 			},
@@ -514,7 +553,7 @@
 			confirmPassword() {
 				if (this.new_password.trim() === this.old_password.trim()) {
 					uni.showToast({
-						title: "新密码不能与旧密码相同",
+						title: "新旧密码需不同",
 						icon: 'error',
 						duration: 2000
 					});
@@ -523,7 +562,7 @@
 					this.confirm_password = ''
 				} else if (this.new_password.trim() !== this.confirm_password.trim()) {
 					uni.showToast({
-						title: "两次输入密码不同",
+						title: "两次新密码不同",
 						icon: 'error',
 						duration: 2000
 					});
@@ -563,7 +602,6 @@
 						this.confirm_password = ''
 					})
 				}
-
 			},
 			getAllCourses() {
 				this.$axios({
@@ -837,8 +875,9 @@
 						display: flex;
 						justify-content: space-between;
 						align-items: center;
-						width: 90%;
+						width: calc(90% - 16px);
 						height: 100%;
+						padding: 0 8px;
 						margin: 0 auto;
 
 						text {

@@ -36,7 +36,7 @@ axios.defaults.adapter = function(config) {
 	})
 }
 
-// request拦截器
+// request 拦截器
 service.interceptors.request.use(
 	(config) => {
 		config.headers['token'] = uni.getStorageSync('token')
@@ -44,8 +44,22 @@ service.interceptors.request.use(
 
 	},
 	(error) => {
-		console.log(error);
-		Promise.reject(error);
+		if (error.request.status == 500) {
+			var img = new Image();
+			//临时判断网络是否通畅
+			img.src = 'https://www.baidu.com/favicon.ico?_t=' + Date.now();
+
+			img.onerror = function() {
+				//'提示','断网了，请注意您的网络连接';
+				uni.showToast({
+					title: '断网了，请注意您的网络连接',
+					icon: 'error',
+					duration: 2000
+				})
+			};
+		} else {
+			return Promise.reject(error);
+		}
 	},
 );
 
